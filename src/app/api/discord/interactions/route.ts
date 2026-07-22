@@ -83,9 +83,11 @@ export async function POST(request: Request) {
       await editOriginalResponse(applicationId, token, {
         embeds: [
           {
-            title: `${result.seasonLabel} — Q${questionOrder}`,
-            description: result.questionText,
-            fields: [{ name: result.username, value: result.answerText }],
+            author: result.avatarUrl
+              ? { name: result.username, icon_url: result.avatarUrl }
+              : { name: result.username },
+            title: `${result.seasonLabel} — Question ${questionOrder}`,
+            description: `"${result.questionText}"\n\n**${result.username}** predicted: **${result.answerText}**`,
             color: 0x6366f1,
           },
         ],

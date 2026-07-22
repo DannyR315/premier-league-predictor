@@ -9,6 +9,7 @@ type RevealResult =
       seasonLabel: string;
       questionText: string;
       username: string;
+      avatarUrl: string | null;
       answerText: string;
     }
   | { ok: false; message: string };
@@ -88,6 +89,7 @@ export async function getRevealAnswer(
     seasonLabel: season.label,
     questionText: seasonQuestion.questionDefinition.text,
     username: user.username,
+    avatarUrl: user.avatarUrl,
     answerText,
   };
 }
