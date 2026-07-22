@@ -20,6 +20,8 @@ export function Combobox({
   name,
   options,
   defaultValue,
+  value: controlledValue,
+  onValueChange,
   placeholder = "Select...",
   searchPlaceholder = "Search...",
   emptyText = "No match found.",
@@ -30,6 +32,11 @@ export function Combobox({
   name: string
   options: { id: string; name: string }[]
   defaultValue?: string
+  /** Pass value + onValueChange to control selection from a parent (e.g. to
+   * exclude picks made in sibling comboboxes). Omit both for normal
+   * self-contained use. */
+  value?: string
+  onValueChange?: (value: string) => void
   placeholder?: string
   searchPlaceholder?: string
   emptyText?: string
@@ -37,7 +44,14 @@ export function Combobox({
   className?: string
 }) {
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState(defaultValue ?? "")
+  const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue ?? "")
+  const isControlled = controlledValue !== undefined
+  const value = isControlled ? controlledValue : uncontrolledValue
+
+  function setValue(next: string) {
+    if (!isControlled) setUncontrolledValue(next)
+    onValueChange?.(next)
+  }
 
   const selected = options.find((option) => option.id === value)
 

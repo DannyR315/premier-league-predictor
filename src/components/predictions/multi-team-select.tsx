@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { Combobox } from "@/components/ui/combobox";
 
 export function MultiTeamSelect({
   name,
@@ -15,47 +14,41 @@ export function MultiTeamSelect({
   selectionCount: number;
   defaultSelectedIds: string[];
 }) {
-  const [selected, setSelected] = useState<string[]>(defaultSelectedIds);
+  const [selected, setSelected] = useState<string[]>(() =>
+    Array.from({ length: selectionCount }, (_, i) => defaultSelectedIds[i] ?? ""),
+  );
 
-  function toggle(clubId: string, checked: boolean) {
+  function setSlot(index: number, clubId: string) {
     setSelected((prev) => {
-      if (checked) {
-        if (prev.length >= selectionCount) return prev;
-        return [...prev, clubId];
-      }
-      return prev.filter((id) => id !== clubId);
+      const next = [...prev];
+      next[index] = clubId;
+      return next;
     });
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs text-muted-foreground">
-        {selected.length} of {selectionCount} selected
-      </p>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-        {clubs.map((club) => {
-          const checked = selected.includes(club.id);
-          const disabled = !checked && selected.length >= selectionCount;
-          return (
-            <div key={club.id} className="flex items-center gap-2">
-              <Checkbox
-                id={`${name}-${club.id}`}
-                name={name}
-                value={club.id}
-                checked={checked}
-                disabled={disabled}
-                onCheckedChange={(value) => toggle(club.id, value === true)}
-              />
-              <Label
-                htmlFor={`${name}-${club.id}`}
-                className="font-normal text-foreground/90"
-              >
-                {club.name}
-              </Label>
-            </div>
-          );
-        })}
-      </div>
+      {selected.map((value, index) => {
+        const takenElsewhere = selected.filter((id, i) => i !== index && id);
+        const availableClubs = clubs.filter(
+          (club) => club.id === value || !takenElsewhere.includes(club.id),
+        );
+        return (
+          <div key={index} className="flex items-center gap-2">
+            <span className="w-4 text-sm text-muted-foreground">
+              {index + 1}.
+            </span>
+            <Combobox
+              name={name}
+              value={value}
+              onValueChange={(clubId) => setSlot(index, clubId)}
+              options={availableClubs}
+              placeholder="Pick a team"
+              searchPlaceholder="Search teams..."
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

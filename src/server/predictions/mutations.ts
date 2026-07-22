@@ -96,6 +96,10 @@ export async function submitPrediction(seasonId: string, formData: FormData) {
         );
         continue;
       }
+      if (new Set(answer.clubIds).size !== answer.clubIds.length) {
+        errors.push(`"${sq.questionDefinition.text}" can't pick the same team twice.`);
+        continue;
+      }
     }
 
     toWrite.push({ seasonQuestionId: sq.id, answer });
