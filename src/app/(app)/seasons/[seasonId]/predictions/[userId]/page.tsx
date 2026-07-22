@@ -1,38 +1,12 @@
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getPredictionDetail } from "@/server/predictions/queries";
+import { formatAnswerValue } from "@/server/predictions/format-answer";
 import { getEffectiveStatus, seasonStatusLabels } from "@/server/seasons/lifecycle";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AnswerReactions } from "@/components/predictions/answer-reactions";
-
-function formatAnswer(
-  answer:
-    | NonNullable<
-        Awaited<ReturnType<typeof getPredictionDetail>>
-      >["answers"][number]
-    | undefined,
-  answerType: string,
-) {
-  if (!answer) return "No answer";
-
-  switch (answerType) {
-    case "TEAM":
-      return answer.club?.name ?? "No answer";
-    case "MANAGER":
-      return answer.manager?.name ?? "No answer";
-    case "MULTIPLE_TEAMS":
-      return answer.multiClubs.length > 0
-        ? answer.multiClubs.map((mc) => mc.club.name).join(", ")
-        : "No answer";
-    case "NUMBER":
-    case "LEAGUE_POSITION":
-      return answer.numberValue ?? "No answer";
-    default:
-      return answer.textValue ?? "No answer";
-  }
-}
 
 export default async function PredictionDetailPage({
   params,
@@ -93,8 +67,8 @@ export default async function PredictionDetailPage({
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">
-                      {formatAnswer(
-                        answer,
+                      {formatAnswerValue(
+                        answer ?? null,
                         seasonQuestion.questionDefinition.answerType,
                       )}
                     </span>
