@@ -26,9 +26,7 @@ export default async function SeasonsPage() {
             const href =
               effectiveStatus === "OPEN"
                 ? `/seasons/${season.id}/predict`
-                : effectiveStatus === "ENDED" || effectiveStatus === "COMPLETED"
-                  ? `/seasons/${season.id}/leaderboard`
-                  : `/seasons/${season.id}/predictions`;
+                : `/seasons/${season.id}/predictions`;
             return (
               <Link key={season.id} href={href}>
                 <Card className="transition-shadow hover:shadow-lg">

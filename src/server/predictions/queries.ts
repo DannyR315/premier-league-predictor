@@ -65,7 +65,6 @@ export function getPredictionDetail(seasonId: string, userId: string) {
           multiClubs: { include: { club: true } },
           seasonQuestion: { include: { questionDefinition: true } },
           reactions: { include: { user: true } },
-          scoringResult: true,
         },
         orderBy: { seasonQuestion: { order: "asc" } },
       },

@@ -91,20 +91,6 @@ export default async function SeasonDetailPage({
               </Link>
             </Button>
           )}
-          {(season.status === "ENDED" || season.status === "COMPLETED") && (
-            <>
-              <Button asChild variant="outline">
-                <Link href={`/admin/seasons/${season.id}/results`}>
-                  Enter results
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href={`/seasons/${season.id}/leaderboard`}>
-                  View leaderboard
-                </Link>
-              </Button>
-            </>
-          )}
           {season.status === "DRAFT" && (
             <form action={openSeason.bind(null, season.id)}>
               <ConfirmSubmitButton
@@ -131,7 +117,7 @@ export default async function SeasonDetailPage({
               <ConfirmSubmitButton
                 type="submit"
                 variant="destructive"
-                confirmMessage="End this season? This unlocks ground-truth entry and voting for scoring."
+                confirmMessage="End this season? This marks it as finished for everyone browsing past seasons."
               >
                 End season
               </ConfirmSubmitButton>

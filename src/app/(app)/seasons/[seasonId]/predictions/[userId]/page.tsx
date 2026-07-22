@@ -65,20 +65,12 @@ export default async function PredictionDetailPage({
                     {seasonQuestion.order}.{" "}
                     {seasonQuestion.questionDefinition.text}
                   </span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">
-                      {formatAnswerValue(
-                        answer ?? null,
-                        seasonQuestion.questionDefinition.answerType,
-                      )}
-                    </span>
-                    {answer?.scoringResult && (
-                      <Badge variant={answer.scoringResult.points > 0 ? "default" : "outline"}>
-                        {answer.scoringResult.points} pt
-                        {answer.scoringResult.points === 1 ? "" : "s"}
-                      </Badge>
+                  <span className="font-medium">
+                    {formatAnswerValue(
+                      answer ?? null,
+                      seasonQuestion.questionDefinition.answerType,
                     )}
-                  </div>
+                  </span>
                 </div>
                 {answer && (
                   <AnswerReactions

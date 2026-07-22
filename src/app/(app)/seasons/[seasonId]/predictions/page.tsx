@@ -53,14 +53,6 @@ export default async function SeasonPredictionsPage({
           {predictions.length} prediction{predictions.length === 1 ? "" : "s"}{" "}
           submitted
         </p>
-        {(effectiveStatus === "ENDED" || effectiveStatus === "COMPLETED") && (
-          <Link
-            href={`/seasons/${seasonId}/leaderboard`}
-            className="mt-2 inline-block text-sm text-primary hover:underline"
-          >
-            View leaderboard →
-          </Link>
-        )}
       </div>
 
       {predictions.length === 0 ? (
