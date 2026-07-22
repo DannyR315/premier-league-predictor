@@ -1,0 +1,278 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============ Identity ============
+
+enum Role {
+  ADMIN
+  PLAYER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  REVOKED
+}
+
+model User {
+  id        String     @id @default(cuid())
+  discordId String     @unique
+  username  String
+  avatarUrl String?
+  email     String?
+  role      Role       @default(PLAYER)
+  status    UserStatus @default(PENDING)
+  createdAt DateTime   @default(now())
+
+  predictions            Prediction[]
+  reactions              Reaction[]
+  communityRatings       CommunityRating[]
+  finalizedSeasonResults SeasonQuestionResult[]
+}
+
+// ============ Football domain ============
+
+model Competition {
+  id      String   @id @default(cuid())
+  name    String
+  slug    String   @unique
+  seasons Season[]
+}
+
+enum SeasonStatus {
+  DRAFT
+  OPEN
+  LOCKED
+  ENDED
+  COMPLETED
+}
+
+model Season {
+  id                String       @id @default(cuid())
+  competitionId     String
+  competition       Competition  @relation(fields: [competitionId], references: [id])
+  label             String // e.g. "2026/27"
+  startDate         DateTime
+  endDate           DateTime?
+  status            SeasonStatus @default(DRAFT)
+  predictionsLockAt DateTime
+  lockNotifiedAt    DateTime? // Discord "predictions locked" announcement already sent
+  endedAt           DateTime?
+  createdAt         DateTime     @default(now())
+
+  clubs           ClubSeason[]
+  seasonQuestions SeasonQuestion[]
+  predictions     Prediction[]
+
+  @@unique([competitionId, label])
+}
+
+model Club {
+  id        String  @id @default(cuid())
+  name      String  @unique
+  shortName String?
+  crestUrl  String?
+
+  seasons               ClubSeason[]
+  managers              Manager[]
+  predictionAnswers     PredictionAnswer[]
+  predictionAnswerMulti PredictionAnswerClub[]
+  seasonResults         SeasonQuestionResult[]
+  seasonResultMulti     SeasonQuestionResultClub[]
+}
+
+model ClubSeason {
+  id       String @id @default(cuid())
+  clubId   String
+  seasonId String
+  club     Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  season   Season @relation(fields: [seasonId], references: [id])
+
+  @@unique([clubId, seasonId])
+}
+
+model Manager {
+  id            String  @id @default(cuid())
+  name          String
+  nationality   String?
+  currentClubId String?
+  currentClub   Club?   @relation(fields: [currentClubId], references: [id], onDelete: SetNull)
+
+  predictionAnswers PredictionAnswer[]
+  seasonResults     SeasonQuestionResult[]
+}
+
+// ============ Predictions domain ============
+
+enum AnswerType {
+  TEAM
+  PLAYER
+  MANAGER
+  LEAGUE_POSITION
+  MULTIPLE_TEAMS
+  NUMBER
+  TEXT
+}
+
+// EXACT_MATCH / POSITION_DIFFERENCE / MULTI_SELECT score against one shared
+// SeasonQuestionResult (admin-entered ground truth). COMMUNITY_VOTE and
+// MANUAL_REVIEW have no shared ground truth — COMMUNITY_VOTE scores each
+// PredictionAnswer from its CommunityRating average, MANUAL_REVIEW from an
+// admin grading each PredictionAnswer directly as correct/incorrect. Both
+// write straight to ScoringResult and skip SeasonQuestionResult entirely.
+enum ScoringStrategy {
+  EXACT_MATCH
+  POSITION_DIFFERENCE
+  MULTI_SELECT
+  COMMUNITY_VOTE
+  MANUAL_REVIEW
+}
+
+model QuestionDefinition {
+  id              String          @id @default(cuid())
+  text            String
+  description     String?
+  answerType      AnswerType
+  scoringStrategy ScoringStrategy
+  selectionCount  Int? // required picks for MULTIPLE_TEAMS, e.g. 5 for "top 5 finishers"; unused otherwise
+  createdAt       DateTime        @default(now())
+
+  seasonQuestions SeasonQuestion[]
+}
+
+model SeasonQuestion {
+  id                   String             @id @default(cuid())
+  seasonId             String
+  season               Season             @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  questionDefinitionId String
+  questionDefinition   QuestionDefinition @relation(fields: [questionDefinitionId], references: [id])
+  order                Int
+  required             Boolean            @default(true)
+  active               Boolean            @default(true)
+  points               Int
+
+  votingClosedAt    DateTime? // COMMUNITY_VOTE only
+  resultFinalizedAt DateTime? // set once this question is scorable, any strategy
+
+  answers PredictionAnswer[]
+  result  SeasonQuestionResult?
+
+  @@unique([seasonId, questionDefinitionId])
+}
+
+model Prediction {
+  id          String   @id @default(cuid())
+  seasonId    String
+  season      Season   @relation(fields: [seasonId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  answers PredictionAnswer[]
+
+  @@unique([seasonId, userId])
+}
+
+model PredictionAnswer {
+  id               String         @id @default(cuid())
+  predictionId     String
+  prediction       Prediction     @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+  seasonQuestionId String
+  seasonQuestion   SeasonQuestion @relation(fields: [seasonQuestionId], references: [id])
+
+  clubId      String?
+  club        Club?    @relation(fields: [clubId], references: [id])
+  managerId   String?
+  manager     Manager? @relation(fields: [managerId], references: [id])
+  numberValue Int?
+  textValue   String?
+
+  multiClubs    PredictionAnswerClub[]
+  ratings       CommunityRating[]
+  reactions     Reaction[]
+  scoringResult ScoringResult?
+
+  @@unique([predictionId, seasonQuestionId])
+}
+
+model PredictionAnswerClub {
+  id                 String           @id @default(cuid())
+  predictionAnswerId String
+  predictionAnswer   PredictionAnswer @relation(fields: [predictionAnswerId], references: [id], onDelete: Cascade)
+  clubId             String
+  club               Club             @relation(fields: [clubId], references: [id])
+
+  @@unique([predictionAnswerId, clubId])
+}
+
+// ============ Ground truth & scoring ============
+
+model SeasonQuestionResult {
+  id               String         @id @default(cuid())
+  seasonQuestionId String         @unique
+  seasonQuestion   SeasonQuestion @relation(fields: [seasonQuestionId], references: [id], onDelete: Cascade)
+
+  clubId      String?
+  club        Club?    @relation(fields: [clubId], references: [id])
+  managerId   String?
+  manager     Manager? @relation(fields: [managerId], references: [id])
+  numberValue Int?
+  textValue   String?
+
+  multiClubs        SeasonQuestionResultClub[]
+  finalizedAt       DateTime                   @default(now())
+  finalizedByUserId String
+  finalizedBy       User                       @relation(fields: [finalizedByUserId], references: [id])
+}
+
+model SeasonQuestionResultClub {
+  id                     String               @id @default(cuid())
+  seasonQuestionResultId String
+  seasonQuestionResult   SeasonQuestionResult @relation(fields: [seasonQuestionResultId], references: [id], onDelete: Cascade)
+  clubId                 String
+  club                   Club                 @relation(fields: [clubId], references: [id])
+
+  @@unique([seasonQuestionResultId, clubId])
+}
+
+model CommunityRating {
+  id                 String           @id @default(cuid())
+  predictionAnswerId String
+  predictionAnswer   PredictionAnswer @relation(fields: [predictionAnswerId], references: [id], onDelete: Cascade)
+  voterUserId        String
+  voter              User             @relation(fields: [voterUserId], references: [id])
+  rating             Int // 1-5
+  createdAt          DateTime         @default(now())
+
+  @@unique([predictionAnswerId, voterUserId])
+}
+
+model ScoringResult {
+  id                 String           @id @default(cuid())
+  predictionAnswerId String           @unique
+  predictionAnswer   PredictionAnswer @relation(fields: [predictionAnswerId], references: [id], onDelete: Cascade)
+  points             Int
+  computedAt         DateTime         @default(now())
+}
+
+// ============ Social ============
+
+model Reaction {
+  id                 String           @id @default(cuid())
+  predictionAnswerId String
+  predictionAnswer   PredictionAnswer @relation(fields: [predictionAnswerId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User             @relation(fields: [userId], references: [id])
+  emoji              String
+  createdAt          DateTime         @default(now())
+
+  @@unique([predictionAnswerId, userId, emoji])
+}
