@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import {
   InteractionType,
   InteractionResponseType,
@@ -12,11 +13,19 @@ const EPHEMERAL = 64;
 
 type CommandOption = { name: string; value: string | number };
 
-function ephemeral(content: string) {
-  return NextResponse.json({
-    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-    data: { content, flags: EPHEMERAL },
-  });
+async function editOriginalResponse(
+  applicationId: string,
+  token: string,
+  body: unknown,
+) {
+  await fetch(
+    `https://discord.com/api/v10/webhooks/${applicationId}/${token}/messages/@original`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
 }
 
 export async function POST(request: Request) {
@@ -49,18 +58,29 @@ export async function POST(request: Request) {
     const questionOrder = options.find((o) => o.name === "question")?.value;
 
     if (typeof discordUserId !== "string" || typeof questionOrder !== "number") {
-      return ephemeral("Missing user or question option.");
+      return NextResponse.json({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: { content: "Missing user or question option.", flags: EPHEMERAL },
+      });
     }
 
-    const result = await getRevealAnswer(discordUserId, questionOrder);
+    const applicationId: string = interaction.application_id;
+    const token: string = interaction.token;
 
-    if (!result.ok) {
-      return ephemeral(result.message);
-    }
-
-    return NextResponse.json({
-      type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-      data: {
+    // Discord requires an ack within 3 seconds, but the DB lookup can take
+    // longer than that (Supabase's free-tier pooler cold-starts after
+    // idling). So we ack immediately with a "thinking" placeholder and use
+    // `after()` — which Vercel keeps the function alive for via waitUntil —
+    // to edit in the real answer once it's ready.
+    after(async () => {
+      const result = await getRevealAnswer(discordUserId, questionOrder);
+      if (!result.ok) {
+        await editOriginalResponse(applicationId, token, {
+          content: result.message,
+        });
+        return;
+      }
+      await editOriginalResponse(applicationId, token, {
         embeds: [
           {
             title: `${result.seasonLabel} — Q${questionOrder}`,
@@ -69,7 +89,11 @@ export async function POST(request: Request) {
             color: 0x6366f1,
           },
         ],
-      },
+      });
+    });
+
+    return NextResponse.json({
+      type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
     });
   }
 
