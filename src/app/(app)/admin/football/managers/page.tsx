@@ -8,13 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { ConfirmSubmitButton } from "@/components/admin/confirm-submit-button";
 
 export default async function ManagersAdminPage() {
@@ -40,18 +34,14 @@ export default async function ManagersAdminPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="currentClubId">Current club</Label>
-              <Select name="currentClubId">
-                <SelectTrigger id="currentClubId" className="w-full">
-                  <SelectValue placeholder="No club" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clubs.map((club) => (
-                    <SelectItem key={club.id} value={club.id}>
-                      {club.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                id="currentClubId"
+                name="currentClubId"
+                options={clubs}
+                placeholder="No club"
+                searchPlaceholder="Search teams..."
+                className="w-full"
+              />
             </div>
             <Button type="submit">Add manager</Button>
           </form>
@@ -94,21 +84,15 @@ export default async function ManagersAdminPage() {
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor={`club-${manager.id}`}>Current club</Label>
-                    <Select
+                    <Combobox
+                      id={`club-${manager.id}`}
                       name="currentClubId"
                       defaultValue={manager.currentClubId ?? undefined}
-                    >
-                      <SelectTrigger id={`club-${manager.id}`} className="w-48">
-                        <SelectValue placeholder="No club" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clubs.map((club) => (
-                          <SelectItem key={club.id} value={club.id}>
-                            {club.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      options={clubs}
+                      placeholder="No club"
+                      searchPlaceholder="Search teams..."
+                      className="w-48"
+                    />
                   </div>
                   <Button type="submit" variant="outline">
                     Save

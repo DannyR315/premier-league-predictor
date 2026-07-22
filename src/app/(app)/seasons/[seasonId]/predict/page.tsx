@@ -15,13 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { MultiTeamSelect } from "@/components/predictions/multi-team-select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2Icon } from "lucide-react";
@@ -52,41 +46,25 @@ function AnswerInput({
   switch (answerType) {
     case "TEAM":
       return (
-        <Select
+        <Combobox
           name={key}
           required={required}
           defaultValue={existingAnswer?.clubId ?? undefined}
-        >
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="Pick a team" />
-          </SelectTrigger>
-          <SelectContent>
-            {clubs.map((club) => (
-              <SelectItem key={club.id} value={club.id}>
-                {club.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          options={clubs}
+          placeholder="Pick a team"
+          searchPlaceholder="Search teams..."
+        />
       );
     case "MANAGER":
       return (
-        <Select
+        <Combobox
           name={key}
           required={required}
           defaultValue={existingAnswer?.managerId ?? undefined}
-        >
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="Pick a manager" />
-          </SelectTrigger>
-          <SelectContent>
-            {managers.map((manager) => (
-              <SelectItem key={manager.id} value={manager.id}>
-                {manager.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          options={managers}
+          placeholder="Pick a manager"
+          searchPlaceholder="Search managers..."
+        />
       );
     case "LEAGUE_POSITION":
       return (
@@ -241,7 +219,6 @@ export default async function PredictPage({
                 {!seasonQuestion.required && (
                   <Badge variant="outline">Optional</Badge>
                 )}
-                <Badge variant="secondary">{seasonQuestion.points} pts</Badge>
               </CardTitle>
               {seasonQuestion.questionDefinition.description && (
                 <p className="text-sm text-muted-foreground">

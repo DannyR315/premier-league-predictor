@@ -419,9 +419,6 @@ export default async function SeasonDetailPage({
                             ]
                           }
                         </Badge>
-                        <Badge variant="outline">
-                          {seasonQuestion.points} pts
-                        </Badge>
                         {!seasonQuestion.required && (
                           <Badge variant="outline">Optional</Badge>
                         )}
