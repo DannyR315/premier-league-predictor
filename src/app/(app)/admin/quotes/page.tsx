@@ -1,11 +1,8 @@
 import { getQuotes } from "@/server/quotes/queries";
-import { createQuote, deleteQuote } from "@/server/quotes/mutations";
+import { deleteQuote } from "@/server/quotes/mutations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { ConfirmSubmitButton } from "@/components/admin/confirm-submit-button";
+import { QuoteUploadForm } from "@/components/admin/quote-upload-form";
 
 export default async function QuotesAdminPage() {
   const quotes = await getQuotes();
@@ -25,21 +22,7 @@ export default async function QuotesAdminPage() {
           <CardTitle>Add quote</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={createQuote} className="flex max-w-md flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="imageUrl">Screenshot URL</Label>
-              <Input id="imageUrl" name="imageUrl" type="url" required />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="text">Caption (optional)</Label>
-              <Textarea id="text" name="text" rows={2} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="authorName">Who said it (optional)</Label>
-              <Input id="authorName" name="authorName" />
-            </div>
-            <Button type="submit">Add quote</Button>
-          </form>
+          <QuoteUploadForm />
         </CardContent>
       </Card>
 
