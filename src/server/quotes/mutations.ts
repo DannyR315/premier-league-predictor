@@ -10,16 +10,16 @@ export async function createQuote(formData: FormData) {
   await requireAdmin();
 
   const data = quoteInput.parse({
+    imageUrl: field(formData, "imageUrl"),
     text: field(formData, "text"),
     authorName: field(formData, "authorName"),
-    imageUrl: field(formData, "imageUrl"),
   });
 
   await prisma.quote.create({
     data: {
-      text: data.text,
-      authorName: data.authorName,
-      imageUrl: data.imageUrl ?? null,
+      imageUrl: data.imageUrl,
+      text: data.text ?? null,
+      authorName: data.authorName ?? null,
     },
   });
   revalidatePath("/admin/quotes");

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Quote" ALTER COLUMN "text" DROP NOT NULL,
+ALTER COLUMN "authorName" DROP NOT NULL,
+ALTER COLUMN "imageUrl" SET NOT NULL;

@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 
 type Quote = {
   id: string;
-  text: string;
-  authorName: string;
-  imageUrl: string | null;
+  imageUrl: string;
+  text: string | null;
+  authorName: string | null;
 };
 
 const ROTATE_MS = 7000;
@@ -35,21 +35,20 @@ export function QuoteBackground({ quotes }: { quotes: Quote[] }) {
             i === index ? "opacity-100" : "opacity-0",
           )}
         >
-          <figure className="flex max-w-sm flex-col items-center gap-3 text-center">
-            {quote.imageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element -- arbitrary external URLs, not worth next/image domain config for a decorative background
-              <img
-                src={quote.imageUrl}
-                alt=""
-                className="max-h-56 rounded-xl object-contain opacity-70 shadow-lg"
-              />
+          <figure className="flex max-w-md flex-col items-center gap-3 text-center">
+            {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external URLs, not worth next/image domain config for a decorative background */}
+            <img
+              src={quote.imageUrl}
+              alt=""
+              className="max-h-80 rounded-xl object-contain opacity-90 shadow-xl ring-1 ring-foreground/10"
+            />
+            {(quote.text || quote.authorName) && (
+              <figcaption className="text-sm text-foreground/40">
+                {quote.text}
+                {quote.text && quote.authorName && " — "}
+                {quote.authorName}
+              </figcaption>
             )}
-            <blockquote className="text-xl font-medium text-foreground/25 italic">
-              &ldquo;{quote.text}&rdquo;
-            </blockquote>
-            <figcaption className="text-sm text-foreground/20">
-              — {quote.authorName}
-            </figcaption>
           </figure>
         </div>
       ))}

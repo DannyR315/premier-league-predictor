@@ -278,13 +278,13 @@ model Reaction {
 }
 
 // Admin-curated hot takes/statements from the Discord server, shown as a
-// rotating background on the prediction form. Free-text author, not a User
-// relation — quotes come from anyone in the server, not just people who've
-// signed into the app.
+// rotating background on the prediction form. Primary content is a
+// screenshot of the actual message — text/authorName are just an optional
+// caption, since the screenshot already shows who said what.
 model Quote {
   id         String   @id @default(cuid())
-  text       String
-  authorName String
-  imageUrl   String?
+  imageUrl   String
+  text       String?
+  authorName String?
   createdAt  DateTime @default(now())
 }
