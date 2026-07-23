@@ -14,6 +14,7 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { usePortalContainer } from "@/components/ui/portal-container-context"
 
 export function Combobox({
   id,
@@ -47,6 +48,7 @@ export function Combobox({
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue ?? "")
   const isControlled = controlledValue !== undefined
   const value = isControlled ? controlledValue : uncontrolledValue
+  const portalContainer = usePortalContainer()
 
   function setValue(next: string) {
     if (!isControlled) setUncontrolledValue(next)
@@ -75,7 +77,10 @@ export function Combobox({
           <ChevronsUpDownIcon className="size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 gap-0 p-0">
+      <PopoverContent
+        className="w-64 gap-0 p-0"
+        container={portalContainer}
+      >
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>

@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/ui/combobox";
 import { MultiTeamSelect } from "@/components/predictions/multi-team-select";
 import { QuoteBackground } from "@/components/predictions/quote-background";
+import { ThemedFormPanel } from "@/components/predictions/themed-form-panel";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2Icon } from "lucide-react";
 
@@ -187,7 +188,7 @@ export default async function PredictPage({
   return (
     <>
       <QuoteBackground quotes={quotes} />
-      <div className="flex flex-col gap-6 rounded-2xl bg-background p-6 shadow-xl ring-1 ring-foreground/10 sm:p-8">
+      <ThemedFormPanel className="predict-theme flex flex-col gap-6 rounded-2xl bg-background p-6 text-foreground shadow-xl ring-1 ring-foreground/10 sm:p-8">
         <div>
           <h1 className="text-2xl font-semibold">
             {season.competition.name} {season.label}
@@ -201,9 +202,9 @@ export default async function PredictPage({
         </div>
 
         {saved === "1" && (
-          <Alert className="flex items-center gap-2 border-green-300 bg-green-100 dark:border-green-700 dark:bg-green-900">
-            <CheckCircle2Icon className="size-4 shrink-0 text-green-700 dark:text-green-400" />
-            <AlertDescription className="text-green-900 dark:text-green-200">
+          <Alert className="flex items-center gap-2 border-green-700 bg-green-900">
+            <CheckCircle2Icon className="size-4 shrink-0 text-green-400" />
+            <AlertDescription className="text-green-200">
               Your predictions have been saved.
             </AlertDescription>
           </Alert>
@@ -246,7 +247,7 @@ export default async function PredictPage({
             Save predictions
           </Button>
         </form>
-      </div>
+      </ThemedFormPanel>
     </>
   );
 }
