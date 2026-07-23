@@ -10,6 +10,7 @@ import { predictionFieldName } from "@/server/predictions/field-names";
 import { getEffectiveStatus, seasonStatusLabels } from "@/server/seasons/lifecycle";
 import { checkAndNotifyPredictionsLocked } from "@/server/seasons/mutations";
 import { getClubs, getManagers } from "@/server/football/queries";
+import { getQuotes } from "@/server/quotes/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/ui/combobox";
 import { MultiTeamSelect } from "@/components/predictions/multi-team-select";
+import { QuoteBackground } from "@/components/predictions/quote-background";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2Icon } from "lucide-react";
 
@@ -168,10 +170,11 @@ export default async function PredictPage({
     );
   }
 
-  const [existingPrediction, clubs, managers] = await Promise.all([
+  const [existingPrediction, clubs, managers, quotes] = await Promise.all([
     getExistingPrediction(seasonId, session.user.id),
     getClubs(),
     getManagers(),
+    getQuotes(),
   ]);
 
   const answersBySeasonQuestionId = new Map(
@@ -183,6 +186,7 @@ export default async function PredictPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <QuoteBackground quotes={quotes} />
       <div>
         <h1 className="text-2xl font-semibold">
           {season.competition.name} {season.label}

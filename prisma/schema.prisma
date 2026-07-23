@@ -276,3 +276,15 @@ model Reaction {
 
   @@unique([predictionAnswerId, userId, emoji])
 }
+
+// Admin-curated hot takes/statements from the Discord server, shown as a
+// rotating background on the prediction form. Free-text author, not a User
+// relation — quotes come from anyone in the server, not just people who've
+// signed into the app.
+model Quote {
+  id         String   @id @default(cuid())
+  text       String
+  authorName String
+  imageUrl   String?
+  createdAt  DateTime @default(now())
+}

@@ -8,6 +8,7 @@ const navLinks = [
   { href: "/admin/questions", label: "Questions" },
   { href: "/admin/football/clubs", label: "Clubs" },
   { href: "/admin/football/managers", label: "Managers" },
+  { href: "/admin/quotes", label: "Quotes" },
   { href: "/admin/users", label: "Users" },
 ];
 
