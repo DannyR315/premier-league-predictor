@@ -185,66 +185,68 @@ export default async function PredictPage({
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <>
       <QuoteBackground quotes={quotes} />
-      <div>
-        <h1 className="text-2xl font-semibold">
-          {season.competition.name} {season.label}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {existingPrediction
-            ? "Edit your predictions"
-            : "Submit your predictions"}{" "}
-          — you can keep changing your answers until predictions lock.
-        </p>
-      </div>
+      <div className="flex flex-col gap-6 rounded-2xl bg-background p-6 shadow-xl ring-1 ring-foreground/10 sm:p-8">
+        <div>
+          <h1 className="text-2xl font-semibold">
+            {season.competition.name} {season.label}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {existingPrediction
+              ? "Edit your predictions"
+              : "Submit your predictions"}{" "}
+            — you can keep changing your answers until predictions lock.
+          </p>
+        </div>
 
-      {saved === "1" && (
-        <Alert className="flex items-center gap-2 border-green-300 bg-green-100 dark:border-green-700 dark:bg-green-900">
-          <CheckCircle2Icon className="size-4 shrink-0 text-green-700 dark:text-green-400" />
-          <AlertDescription className="text-green-900 dark:text-green-200">
-            Your predictions have been saved.
-          </AlertDescription>
-        </Alert>
-      )}
+        {saved === "1" && (
+          <Alert className="flex items-center gap-2 border-green-300 bg-green-100 dark:border-green-700 dark:bg-green-900">
+            <CheckCircle2Icon className="size-4 shrink-0 text-green-700 dark:text-green-400" />
+            <AlertDescription className="text-green-900 dark:text-green-200">
+              Your predictions have been saved.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <form
-        action={submitPrediction.bind(null, seasonId)}
-        className="flex flex-col gap-6"
-      >
-        {season.seasonQuestions.map((seasonQuestion) => (
-          <Card key={seasonQuestion.id}>
-            <CardHeader>
-              <CardTitle className="flex flex-wrap items-center gap-2 text-base">
-                <span>
-                  {seasonQuestion.order}.{" "}
-                  {seasonQuestion.questionDefinition.text}
-                </span>
-                {!seasonQuestion.required && (
-                  <Badge variant="outline">Optional</Badge>
+        <form
+          action={submitPrediction.bind(null, seasonId)}
+          className="flex flex-col gap-6"
+        >
+          {season.seasonQuestions.map((seasonQuestion) => (
+            <Card key={seasonQuestion.id}>
+              <CardHeader>
+                <CardTitle className="flex flex-wrap items-center gap-2 text-base">
+                  <span>
+                    {seasonQuestion.order}.{" "}
+                    {seasonQuestion.questionDefinition.text}
+                  </span>
+                  {!seasonQuestion.required && (
+                    <Badge variant="outline">Optional</Badge>
+                  )}
+                </CardTitle>
+                {seasonQuestion.questionDefinition.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {seasonQuestion.questionDefinition.description}
+                  </p>
                 )}
-              </CardTitle>
-              {seasonQuestion.questionDefinition.description && (
-                <p className="text-sm text-muted-foreground">
-                  {seasonQuestion.questionDefinition.description}
-                </p>
-              )}
-            </CardHeader>
-            <CardContent>
-              <AnswerInput
-                seasonQuestion={seasonQuestion}
-                existingAnswer={answersBySeasonQuestionId.get(seasonQuestion.id)}
-                clubs={clubs}
-                managers={managers}
-              />
-            </CardContent>
-          </Card>
-        ))}
+              </CardHeader>
+              <CardContent>
+                <AnswerInput
+                  seasonQuestion={seasonQuestion}
+                  existingAnswer={answersBySeasonQuestionId.get(seasonQuestion.id)}
+                  clubs={clubs}
+                  managers={managers}
+                />
+              </CardContent>
+            </Card>
+          ))}
 
-        <Button type="submit" className="w-fit">
-          Save predictions
-        </Button>
-      </form>
-    </div>
+          <Button type="submit" className="w-fit">
+            Save predictions
+          </Button>
+        </form>
+      </div>
+    </>
   );
 }
