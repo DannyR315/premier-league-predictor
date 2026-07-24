@@ -100,7 +100,7 @@ export default async function SeasonPredictionsPage({
                     return (
                       <div
                         key={seasonQuestion.id}
-                        className="flex flex-col gap-1.5 border-t pt-3 first:border-t-0 first:pt-0"
+                        className="group relative flex flex-col gap-1.5 border-t pt-3 first:border-t-0 first:pt-0"
                       >
                         <span className="text-xs text-muted-foreground">
                           {seasonQuestion.order}.{" "}
