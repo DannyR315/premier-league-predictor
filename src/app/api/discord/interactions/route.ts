@@ -6,10 +6,7 @@ import {
   verifyKey,
 } from "discord-interactions";
 import { getRevealAnswer } from "@/server/discord/reveal-command";
-import {
-  addQuoteFromImageUrl,
-  addQuoteFromText,
-} from "@/server/discord/add-quote-command";
+import { addQuoteFromMessage } from "@/server/discord/add-quote-command";
 
 export const runtime = "nodejs";
 
@@ -124,10 +121,6 @@ export async function POST(request: Request) {
     )?.find((e) => e.image?.url ?? e.thumbnail?.url);
     const imageUrl: string | undefined =
       attachment?.url ?? embed?.image?.url ?? embed?.thumbnail?.url;
-    const textContent: string | undefined =
-      typeof message?.content === "string" && message.content.trim().length > 0
-        ? message.content.trim()
-        : undefined;
 
     if (!invokerId) {
       return NextResponse.json({
@@ -135,11 +128,11 @@ export async function POST(request: Request) {
         data: { content: "Couldn't tell who ran this.", flags: EPHEMERAL },
       });
     }
-    if (!imageUrl && !textContent) {
+    if (!imageUrl) {
       return NextResponse.json({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
-          content: "That message doesn't have an image or any text to quote.",
+          content: "That message doesn't have an image attached.",
           flags: EPHEMERAL,
         },
       });
@@ -147,24 +140,11 @@ export async function POST(request: Request) {
 
     const applicationId: string = interaction.application_id;
     const token: string = interaction.token;
-    const author = message?.author as
-      | { id: string; username: string; global_name?: string | null; avatar?: string | null }
-      | undefined;
 
-    // Downloading/rendering the image and uploading it to Blob storage can
-    // easily exceed Discord's 3s ack window, same reasoning as
-    // /pl-predictor above.
+    // Downloading the image and re-uploading it to Blob storage can easily
+    // exceed Discord's 3s ack window, same reasoning as /pl-predictor above.
     after(async () => {
-      const result = imageUrl
-        ? await addQuoteFromImageUrl(invokerId, imageUrl)
-        : await addQuoteFromText(invokerId, {
-            text: textContent!,
-            authorName: author?.global_name ?? author?.username ?? "Unknown",
-            authorAvatarUrl:
-              author?.avatar && author?.id
-                ? `https://cdn.discordapp.com/avatars/${author.id}/${author.avatar}.png`
-                : undefined,
-          });
+      const result = await addQuoteFromMessage(invokerId, imageUrl);
       await editOriginalResponse(applicationId, token, {
         content: result.ok ? "Added to the quote wall." : result.message,
       });
