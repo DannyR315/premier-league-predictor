@@ -13,14 +13,23 @@ const ROW_COUNT = 10;
 // decode/repaint stutter. Distributing quotes round-robin across rows keeps
 // total image nodes roughly constant regardless of library size.
 const MIN_TILES_PER_ROW = 8;
-const DURATIONS = [143, 160, 176, 127] as const;
+const TILE_WIDTH_PX = 288; // w-72
+const GAP_PX = 12; // gap-3
 
-const ROWS = Array.from({ length: ROW_COUNT }, (_, i) => ({
+// Target scroll speed in px/s, not a fixed duration — a row's travel
+// distance depends on how many tiles it ends up with, so a fixed duration
+// made rows crawl once tile count was capped above. Deriving duration from
+// speed keeps the actual visual speed consistent regardless of tile count.
+// Values are ~90% of what the durations worked out to before tiles were
+// capped (i.e. 10% slower, as asked for).
+const TARGET_SPEEDS_PX_PER_S = [98, 87, 79, 110] as const;
+
+const ROW_META = Array.from({ length: ROW_COUNT }, (_, i) => ({
   direction: i % 2 === 0 ? "animate-marquee" : "animate-marquee-reverse",
-  duration: `${DURATIONS[i % DURATIONS.length]}s`,
+  speed: TARGET_SPEEDS_PX_PER_S[i % TARGET_SPEEDS_PX_PER_S.length],
 }));
 
-function buildRowTiles(quotes: Quote[], rowIndex: number, rowCount: number) {
+function buildRowBase(quotes: Quote[], rowIndex: number, rowCount: number) {
   const subset = quotes.filter((_, idx) => idx % rowCount === rowIndex);
   const base = subset.length > 0 ? subset : quotes;
 
@@ -28,10 +37,7 @@ function buildRowTiles(quotes: Quote[], rowIndex: number, rowCount: number) {
   while (padded.length < MIN_TILES_PER_ROW) {
     padded.push(...base);
   }
-
-  // Duplicated once so the track can loop seamlessly: translateX(-50%)
-  // lines up exactly with the start of the second copy.
-  return [...padded, ...padded];
+  return padded;
 }
 
 export function QuoteBackground({ quotes }: { quotes: Quote[] }) {
@@ -39,13 +45,18 @@ export function QuoteBackground({ quotes }: { quotes: Quote[] }) {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 flex flex-col overflow-hidden">
-      {ROWS.map((row, i) => {
-        const tiles = buildRowTiles(quotes, i, ROW_COUNT);
+      {ROW_META.map((row, i) => {
+        const base = buildRowBase(quotes, i, ROW_COUNT);
+        // Duplicated once so the track can loop seamlessly: translateX(-50%)
+        // lines up exactly with the start of the second copy.
+        const tiles = [...base, ...base];
+        const rowWidthPx = base.length * TILE_WIDTH_PX + (base.length - 1) * GAP_PX;
+        const duration = rowWidthPx / row.speed;
         return (
           <div key={i} className="flex flex-1 items-center overflow-hidden">
             <div
               className={cn("flex w-max shrink-0 gap-3 will-change-transform", row.direction)}
-              style={{ "--marquee-duration": row.duration } as React.CSSProperties}
+              style={{ "--marquee-duration": `${duration}s` } as React.CSSProperties}
             >
               {tiles.map((quote, j) => (
                 // eslint-disable-next-line @next/next/no-img-element -- arbitrary external URLs, not worth next/image domain config for a decorative background
