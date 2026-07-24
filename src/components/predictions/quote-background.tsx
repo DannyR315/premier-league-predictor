@@ -12,7 +12,7 @@ const ROW_COUNT = 10;
 // the hundreds as more screenshots were added and caused visible
 // decode/repaint stutter. Distributing quotes round-robin across rows keeps
 // total image nodes roughly constant regardless of library size.
-const MIN_TILES_PER_ROW = 8;
+const MIN_TILES_PER_ROW = 16;
 const TILE_WIDTH_PX = 288; // w-72
 const GAP_PX = 12; // gap-3
 
@@ -55,7 +55,7 @@ export function QuoteBackground({ quotes }: { quotes: Quote[] }) {
         return (
           <div key={i} className="flex flex-1 items-center overflow-hidden">
             <div
-              className={cn("flex w-max shrink-0 gap-3 will-change-transform", row.direction)}
+              className={cn("flex w-max shrink-0 gap-3", row.direction)}
               style={{ "--marquee-duration": `${duration}s` } as React.CSSProperties}
             >
               {tiles.map((quote, j) => (
