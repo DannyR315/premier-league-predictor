@@ -1,14 +1,17 @@
 import { auth } from "@/lib/auth";
 import { getUsers } from "@/server/users/queries";
 import {
+  preAuthorizeUser,
   approveUser,
   toggleAdminRole,
   revokeUser,
   reactivateUser,
 } from "@/server/users/mutations";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -54,6 +57,57 @@ export default async function UsersAdminPage() {
           admin approves them — Discord membership alone never grants access.
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pre-authorize by Discord ID</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Skips the pending-approval wait for someone you already trust —
+            they land as Active the moment they sign in. Ask them for their
+            Discord ID (Settings → Advanced → enable Developer Mode, then
+            right-click their name → Copy User ID).
+          </p>
+          <form
+            action={preAuthorizeUser}
+            className="flex flex-wrap items-end gap-4"
+          >
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="discordId">Discord ID</Label>
+              <Input
+                id="discordId"
+                name="discordId"
+                placeholder="e.g. 95532322731851776"
+                required
+                className="w-56"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="nickname">Nickname (optional)</Label>
+              <Input
+                id="nickname"
+                name="nickname"
+                placeholder="Shown until they sign in"
+                className="w-56"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="preauth-role">Role</Label>
+              <Select name="role" defaultValue="PLAYER">
+                <SelectTrigger id="preauth-role" className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PLAYER">Player</SelectItem>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit">Add</Button>
+          </form>
+        </CardContent>
+      </Card>
 
       {pending.length > 0 && (
         <section className="flex flex-col gap-3">
