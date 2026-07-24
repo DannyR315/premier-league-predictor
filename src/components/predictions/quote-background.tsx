@@ -10,9 +10,9 @@ const ROW_COUNT = 10;
 // before it loops — reusing the *entire* quote list in every row (as before)
 // meant total <img> nodes scaled as rows x 2 x quotes.length, which got into
 // the hundreds as more screenshots were added and caused visible
-// decode/repaint stutter. Distributing quotes round-robin across rows keeps
-// total image nodes roughly constant regardless of library size.
-const MIN_TILES_PER_ROW = 16;
+// decode/repaint stutter. Capping it here keeps total image nodes roughly
+// constant regardless of library size.
+const TILES_PER_ROW = 16;
 const TILE_WIDTH_PX = 288; // w-72
 const GAP_PX = 12; // gap-3
 
@@ -29,24 +29,38 @@ const ROW_META = Array.from({ length: ROW_COUNT }, (_, i) => ({
   speed: TARGET_SPEEDS_PX_PER_S[i % TARGET_SPEEDS_PX_PER_S.length],
 }));
 
-function buildRowBase(quotes: Quote[], rowIndex: number, rowCount: number) {
-  const subset = quotes.filter((_, idx) => idx % rowCount === rowIndex);
-  const base = subset.length > 0 ? subset : quotes;
-
-  const padded: Quote[] = [];
-  while (padded.length < MIN_TILES_PER_ROW) {
-    padded.push(...base);
+function shuffle<T>(items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return padded;
+  return arr;
+}
+
+// Each row cycles TILES_PER_ROW images starting at a different point in the
+// shuffled pool, rather than every row getting a fixed, disjoint slice of
+// the library (round-robin by index) — that meant whichever row's slice
+// landed small (whenever quotes.length wasn't a clean multiple of
+// ROW_COUNT) was stuck permanently repeating just those few images. This
+// also gets a fresh shuffle on every page load.
+function buildRowBase(shuffled: Quote[], rowIndex: number) {
+  if (shuffled.length === 0) return [];
+  const offset = (rowIndex * 7) % shuffled.length;
+  return Array.from(
+    { length: TILES_PER_ROW },
+    (_, i) => shuffled[(offset + i) % shuffled.length],
+  );
 }
 
 export function QuoteBackground({ quotes }: { quotes: Quote[] }) {
   if (quotes.length === 0) return null;
+  const shuffled = shuffle(quotes);
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 flex flex-col overflow-hidden">
       {ROW_META.map((row, i) => {
-        const base = buildRowBase(quotes, i, ROW_COUNT);
+        const base = buildRowBase(shuffled, i);
         // Duplicated once so the track can loop seamlessly: translateX(-50%)
         // lines up exactly with the start of the second copy.
         const tiles = [...base, ...base];
