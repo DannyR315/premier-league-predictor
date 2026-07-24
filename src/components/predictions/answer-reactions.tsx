@@ -85,35 +85,33 @@ export function AnswerReactions({
         </PopoverContent>
       </Popover>
 
-      {grouped.size > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          {[...grouped.entries()].map(([emoji, users]) => {
-            const mine = users.some((u) => u.userId === currentUserId);
-            return (
-              <Tooltip key={emoji}>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={() => toggle(emoji)}
-                    className={cn(
-                      "flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors",
-                      mine
-                        ? "border-primary/40 bg-primary/10"
-                        : "border-border bg-muted/50 hover:bg-muted",
-                    )}
-                  >
-                    <span>{emoji}</span>
-                    <span className="text-muted-foreground">{users.length}</span>
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {users.map((u) => u.username).join(", ")}
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
-        </div>
-      )}
+      <div className="flex min-h-[22px] flex-wrap items-center gap-1.5">
+        {[...grouped.entries()].map(([emoji, users]) => {
+          const mine = users.some((u) => u.userId === currentUserId);
+          return (
+            <Tooltip key={emoji}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => toggle(emoji)}
+                  className={cn(
+                    "flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors",
+                    mine
+                      ? "border-primary/40 bg-primary/10"
+                      : "border-border bg-muted/50 hover:bg-muted",
+                  )}
+                >
+                  <span>{emoji}</span>
+                  <span className="text-muted-foreground">{users.length}</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {users.map((u) => u.username).join(", ")}
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
     </>
   );
 }
