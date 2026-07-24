@@ -6,10 +6,10 @@ type Quote = {
 };
 
 const ROWS = [
-  { direction: "animate-marquee", duration: "70s" },
-  { direction: "animate-marquee-reverse", duration: "55s" },
-  { direction: "animate-marquee", duration: "65s" },
-  { direction: "animate-marquee-reverse", duration: "50s" },
+  { direction: "animate-marquee", duration: "150s" },
+  { direction: "animate-marquee-reverse", duration: "120s" },
+  { direction: "animate-marquee", duration: "140s" },
+  { direction: "animate-marquee-reverse", duration: "110s" },
 ] as const;
 
 function rotate<T>(items: T[], by: number) {
@@ -38,7 +38,7 @@ export function QuoteBackground({ quotes }: { quotes: Quote[] }) {
                   key={`${quote.id}-${j}`}
                   src={quote.imageUrl}
                   alt=""
-                  className="h-full w-72 shrink-0 rounded-lg object-cover shadow-lg ring-1 ring-foreground/10"
+                  className="h-full w-auto shrink-0 rounded-lg object-contain shadow-lg ring-1 ring-foreground/10"
                 />
               ))}
             </div>
