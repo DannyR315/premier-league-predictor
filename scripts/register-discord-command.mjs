@@ -1,6 +1,8 @@
-// Registers/updates the /pl-predictor slash command with Discord. Re-run
-// this whenever the command's name, description, or options change — Discord
-// doesn't pick up definition changes from the interactions endpoint itself.
+// Registers/updates the bot's Discord commands. Re-run this whenever a
+// command's name, description, or options change — Discord doesn't pick up
+// definition changes from the interactions endpoint itself. This does a
+// bulk overwrite (PUT), so every command the bot should have needs to be
+// listed here, not just whichever one changed.
 //
 // Usage:
 //   set -a && source .env && set +a && node scripts/register-discord-command.mjs
@@ -14,25 +16,32 @@ if (!applicationId || !botToken) {
   process.exit(1);
 }
 
-const command = {
-  name: "pl-predictor",
-  description: "Reveal a friend's prediction for a locked question",
-  options: [
-    {
-      name: "user",
-      description: "Whose prediction to reveal",
-      type: 6, // USER
-      required: true,
-    },
-    {
-      name: "question",
-      description: "Question number, as shown on the predictions page",
-      type: 4, // INTEGER
-      required: true,
-      min_value: 1,
-    },
-  ],
-};
+const commands = [
+  {
+    name: "pl-predictor",
+    type: 1, // CHAT_INPUT
+    description: "Reveal a friend's prediction for a locked question",
+    options: [
+      {
+        name: "user",
+        description: "Whose prediction to reveal",
+        type: 6, // USER
+        required: true,
+      },
+      {
+        name: "question",
+        description: "Question number, as shown on the predictions page",
+        type: 4, // INTEGER
+        required: true,
+        min_value: 1,
+      },
+    ],
+  },
+  {
+    name: "Add as quote",
+    type: 3, // MESSAGE (right-click a message -> Apps -> Add as quote)
+  },
+];
 
 // Guild-scoped registration applies instantly; global registration can take
 // up to an hour to propagate. This is a single-server bot, so guild-scoped
@@ -47,7 +56,7 @@ const res = await fetch(url, {
     Authorization: `Bot ${botToken}`,
     "Content-Type": "application/json",
   },
-  body: JSON.stringify([command]),
+  body: JSON.stringify(commands),
 });
 
 if (!res.ok) {
@@ -58,6 +67,6 @@ if (!res.ok) {
 
 console.log(
   guildId
-    ? `Registered /pl-predictor for guild ${guildId} (instant).`
-    : "Registered /pl-predictor globally (may take up to an hour to appear).",
+    ? `Registered ${commands.length} commands for guild ${guildId} (instant).`
+    : `Registered ${commands.length} commands globally (may take up to an hour to appear).`,
 );

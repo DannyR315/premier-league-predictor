@@ -6,6 +6,7 @@ import {
   verifyKey,
 } from "discord-interactions";
 import { getRevealAnswer } from "@/server/discord/reveal-command";
+import { addQuoteFromMessage } from "@/server/discord/add-quote-command";
 
 export const runtime = "nodejs";
 
@@ -96,6 +97,62 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+    });
+  }
+
+  if (
+    interaction.type === InteractionType.APPLICATION_COMMAND &&
+    interaction.data?.name === "Add as quote"
+  ) {
+    const targetId: string | undefined = interaction.data.target_id;
+    const message = targetId
+      ? interaction.data.resolved?.messages?.[targetId]
+      : undefined;
+    const invokerId: string | undefined =
+      interaction.member?.user?.id ?? interaction.user?.id;
+
+    const attachment = (
+      message?.attachments as { url: string; content_type?: string }[] | undefined
+    )?.find((a) => a.content_type?.startsWith("image/"));
+    const embed = (
+      message?.embeds as
+        | { image?: { url?: string }; thumbnail?: { url?: string } }[]
+        | undefined
+    )?.find((e) => e.image?.url ?? e.thumbnail?.url);
+    const imageUrl: string | undefined =
+      attachment?.url ?? embed?.image?.url ?? embed?.thumbnail?.url;
+
+    if (!invokerId) {
+      return NextResponse.json({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: { content: "Couldn't tell who ran this.", flags: EPHEMERAL },
+      });
+    }
+    if (!imageUrl) {
+      return NextResponse.json({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: {
+          content: "That message doesn't have an image attached.",
+          flags: EPHEMERAL,
+        },
+      });
+    }
+
+    const applicationId: string = interaction.application_id;
+    const token: string = interaction.token;
+
+    // Downloading the image and re-uploading it to Blob storage can easily
+    // exceed Discord's 3s ack window, same reasoning as /pl-predictor above.
+    after(async () => {
+      const result = await addQuoteFromMessage(invokerId, imageUrl);
+      await editOriginalResponse(applicationId, token, {
+        content: result.ok ? "Added to the quote wall." : result.message,
+      });
+    });
+
+    return NextResponse.json({
+      type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+      data: { flags: EPHEMERAL },
     });
   }
 
