@@ -6,17 +6,32 @@ type Quote = {
 };
 
 const ROW_COUNT = 10;
-const DURATIONS = [130, 145, 160, 115] as const;
+// Each row only needs enough tiles to comfortably outrun the viewport width
+// before it loops — reusing the *entire* quote list in every row (as before)
+// meant total <img> nodes scaled as rows x 2 x quotes.length, which got into
+// the hundreds as more screenshots were added and caused visible
+// decode/repaint stutter. Distributing quotes round-robin across rows keeps
+// total image nodes roughly constant regardless of library size.
+const MIN_TILES_PER_ROW = 8;
+const DURATIONS = [143, 160, 176, 127] as const;
 
 const ROWS = Array.from({ length: ROW_COUNT }, (_, i) => ({
   direction: i % 2 === 0 ? "animate-marquee" : "animate-marquee-reverse",
   duration: `${DURATIONS[i % DURATIONS.length]}s`,
 }));
 
-function rotate<T>(items: T[], by: number) {
-  if (items.length === 0) return items;
-  const offset = by % items.length;
-  return [...items.slice(offset), ...items.slice(0, offset)];
+function buildRowTiles(quotes: Quote[], rowIndex: number, rowCount: number) {
+  const subset = quotes.filter((_, idx) => idx % rowCount === rowIndex);
+  const base = subset.length > 0 ? subset : quotes;
+
+  const padded: Quote[] = [];
+  while (padded.length < MIN_TILES_PER_ROW) {
+    padded.push(...base);
+  }
+
+  // Duplicated once so the track can loop seamlessly: translateX(-50%)
+  // lines up exactly with the start of the second copy.
+  return [...padded, ...padded];
 }
 
 export function QuoteBackground({ quotes }: { quotes: Quote[] }) {
@@ -25,12 +40,11 @@ export function QuoteBackground({ quotes }: { quotes: Quote[] }) {
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 flex flex-col overflow-hidden">
       {ROWS.map((row, i) => {
-        const rowQuotes = rotate(quotes, i * 3);
-        const tiles = [...rowQuotes, ...rowQuotes];
+        const tiles = buildRowTiles(quotes, i, ROW_COUNT);
         return (
           <div key={i} className="flex flex-1 items-center overflow-hidden">
             <div
-              className={cn("flex w-max shrink-0 gap-3", row.direction)}
+              className={cn("flex w-max shrink-0 gap-3 will-change-transform", row.direction)}
               style={{ "--marquee-duration": row.duration } as React.CSSProperties}
             >
               {tiles.map((quote, j) => (
