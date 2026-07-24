@@ -181,5 +181,5 @@ export async function submitPrediction(seasonId: string, formData: FormData) {
   }
 
   revalidatePath(`/seasons/${seasonId}/predict`);
-  redirect(`/seasons/${seasonId}/predict?saved=1`);
+  redirect(`/seasons?saved=1`);
 }

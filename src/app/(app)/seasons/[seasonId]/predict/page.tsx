@@ -14,14 +14,12 @@ import { getQuotes } from "@/server/quotes/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/ui/combobox";
 import { MultiTeamSelect } from "@/components/predictions/multi-team-select";
 import { QuoteBackground } from "@/components/predictions/quote-background";
 import { ThemedFormPanel } from "@/components/predictions/themed-form-panel";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2Icon } from "lucide-react";
+import { SubmitPredictionsButton } from "@/components/predictions/submit-predictions-button";
 
 type SeasonForPrediction = NonNullable<
   Awaited<ReturnType<typeof getSeasonForPrediction>>
@@ -128,13 +126,10 @@ function AnswerInput({
 
 export default async function PredictPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ seasonId: string }>;
-  searchParams: Promise<{ saved?: string }>;
 }) {
   const { seasonId } = await params;
-  const { saved } = await searchParams;
   const session = await auth();
   if (!session?.user) redirect("/");
 
@@ -201,15 +196,6 @@ export default async function PredictPage({
           </p>
         </div>
 
-        {saved === "1" && (
-          <Alert className="flex items-center gap-2 border-green-700 bg-green-900">
-            <CheckCircle2Icon className="size-4 shrink-0 text-green-400" />
-            <AlertDescription className="text-green-200">
-              Your predictions have been saved.
-            </AlertDescription>
-          </Alert>
-        )}
-
         <form
           action={submitPrediction.bind(null, seasonId)}
           className="flex flex-col gap-6"
@@ -243,9 +229,7 @@ export default async function PredictPage({
             </Card>
           ))}
 
-          <Button type="submit" className="w-fit">
-            Save predictions
-          </Button>
+          <SubmitPredictionsButton />
         </form>
       </ThemedFormPanel>
     </>
