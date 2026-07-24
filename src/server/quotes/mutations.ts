@@ -11,17 +11,9 @@ export async function createQuote(formData: FormData) {
 
   const data = quoteInput.parse({
     imageUrl: field(formData, "imageUrl"),
-    text: field(formData, "text"),
-    authorName: field(formData, "authorName"),
   });
 
-  await prisma.quote.create({
-    data: {
-      imageUrl: data.imageUrl,
-      text: data.text ?? null,
-      authorName: data.authorName ?? null,
-    },
-  });
+  await prisma.quote.create({ data: { imageUrl: data.imageUrl } });
   revalidatePath("/admin/quotes");
 }
 

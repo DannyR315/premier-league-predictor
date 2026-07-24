@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { createQuote } from "@/server/quotes/mutations";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
@@ -31,7 +30,7 @@ export function QuoteUploadForm() {
         handleUploadUrl: "/api/quotes/upload",
       });
 
-      const formData = new FormData(formRef.current!);
+      const formData = new FormData();
       formData.set("imageUrl", blob.url);
 
       await createQuote(formData);
@@ -47,7 +46,7 @@ export function QuoteUploadForm() {
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="flex max-w-md flex-col gap-4"
+      className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="image">Screenshot</Label>
@@ -58,14 +57,6 @@ export function QuoteUploadForm() {
           accept="image/png,image/jpeg,image/webp,image/gif"
           required
         />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="text">Caption (optional)</Label>
-        <Textarea id="text" name="text" rows={2} />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="authorName">Who said it (optional)</Label>
-        <Input id="authorName" name="authorName" />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit" disabled={isUploading}>

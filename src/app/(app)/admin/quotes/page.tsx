@@ -1,6 +1,6 @@
 import { getQuotes } from "@/server/quotes/queries";
 import { deleteQuote } from "@/server/quotes/mutations";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmSubmitButton } from "@/components/admin/confirm-submit-button";
 import { QuoteUploadForm } from "@/components/admin/quote-upload-form";
 
@@ -12,47 +12,37 @@ export default async function QuotesAdminPage() {
       <div>
         <h1 className="text-2xl font-semibold">Quotes</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Hot takes and statements from the Discord server — shown as a
-          rotating background on the prediction form.
+          Screenshots from the Discord server — shown as a rotating
+          background on the prediction form.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Add quote</CardTitle>
-        </CardHeader>
+      <Card className="max-w-md">
         <CardContent>
           <QuoteUploadForm />
         </CardContent>
       </Card>
 
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {quotes.length === 0 && (
-          <p className="text-sm text-muted-foreground">No quotes yet.</p>
+          <p className="col-span-full text-sm text-muted-foreground">
+            No quotes yet.
+          </p>
         )}
         {quotes.map((quote) => (
           <Card key={quote.id}>
-            <CardContent className="flex items-start justify-between gap-4 pt-6">
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external URL */}
-                <img
-                  src={quote.imageUrl}
-                  alt=""
-                  className="h-16 w-16 rounded-md object-cover"
-                />
-                <div className="flex flex-col gap-1">
-                  {quote.text && <p className="text-sm italic">&ldquo;{quote.text}&rdquo;</p>}
-                  {quote.authorName && (
-                    <p className="text-xs text-muted-foreground">
-                      — {quote.authorName}
-                    </p>
-                  )}
-                </div>
-              </div>
+            {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external URL */}
+            <img
+              src={quote.imageUrl}
+              alt=""
+              className="h-56 w-full bg-muted object-contain"
+            />
+            <CardContent>
               <form action={deleteQuote.bind(null, quote.id)}>
                 <ConfirmSubmitButton
                   type="submit"
                   variant="destructive"
+                  className="w-full"
                   confirmMessage="Delete this quote?"
                 >
                   Delete
