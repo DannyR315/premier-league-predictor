@@ -31,7 +31,9 @@ export function getExistingPrediction(seasonId: string, userId: string) {
   return prisma.prediction.findUnique({
     where: { seasonId_userId: { seasonId, userId } },
     include: {
-      answers: { include: { multiClubs: true } },
+      answers: {
+        include: { multiClubs: { orderBy: { order: "asc" } } },
+      },
     },
   });
 }
@@ -45,7 +47,10 @@ export function getRevealedPredictionsWithAnswers(seasonId: string) {
         include: {
           club: true,
           manager: true,
-          multiClubs: { include: { club: true } },
+          multiClubs: {
+            include: { club: true },
+            orderBy: { order: "asc" },
+          },
           reactions: { include: { user: true } },
         },
       },

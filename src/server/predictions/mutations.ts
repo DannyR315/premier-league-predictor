@@ -165,9 +165,10 @@ export async function submitPrediction(seasonId: string, formData: FormData) {
           where: { predictionAnswerId: predictionAnswer.id },
         });
         await tx.predictionAnswerClub.createMany({
-          data: answer.clubIds.map((clubId) => ({
+          data: answer.clubIds.map((clubId, order) => ({
             predictionAnswerId: predictionAnswer.id,
             clubId,
+            order,
           })),
         });
       }

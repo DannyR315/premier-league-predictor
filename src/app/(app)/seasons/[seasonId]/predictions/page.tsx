@@ -106,7 +106,7 @@ export default async function SeasonPredictionsPage({
                           {seasonQuestion.order}.{" "}
                           {seasonQuestion.questionDefinition.text}
                         </span>
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium whitespace-pre-line">
                           {formatAnswerValue(
                             answer ?? null,
                             seasonQuestion.questionDefinition.answerType,

@@ -21,7 +21,9 @@ export function formatAnswerValue(
       return answer.manager?.name ?? "No answer";
     case "MULTIPLE_TEAMS":
       return answer.multiClubs.length > 0
-        ? answer.multiClubs.map((mc) => mc.club.name).join(", ")
+        ? answer.multiClubs
+            .map((mc, i) => `${i + 1}. ${mc.club.name}`)
+            .join("\n")
         : "No answer";
     case "NUMBER":
     case "LEAGUE_POSITION":

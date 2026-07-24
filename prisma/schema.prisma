@@ -209,6 +209,7 @@ model PredictionAnswerClub {
   predictionAnswer   PredictionAnswer @relation(fields: [predictionAnswerId], references: [id], onDelete: Cascade)
   clubId             String
   club               Club             @relation(fields: [clubId], references: [id])
+  order              Int              @default(0)
 
   @@unique([predictionAnswerId, clubId])
 }

@@ -73,7 +73,11 @@ export async function getRevealAnswer(
         seasonQuestionId: seasonQuestion.id,
       },
     },
-    include: { club: true, manager: true, multiClubs: { include: { club: true } } },
+    include: {
+      club: true,
+      manager: true,
+      multiClubs: { include: { club: true }, orderBy: { order: "asc" } },
+    },
   });
 
   const answerText = formatAnswerValue(
