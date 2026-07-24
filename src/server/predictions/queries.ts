@@ -36,38 +36,20 @@ export function getExistingPrediction(seasonId: string, userId: string) {
   });
 }
 
-export function getRevealedPredictions(seasonId: string) {
+export function getRevealedPredictionsWithAnswers(seasonId: string) {
   return prisma.prediction.findMany({
     where: { seasonId },
-    include: { user: true },
-    orderBy: { user: { username: "asc" } },
-  });
-}
-
-export function getPredictionDetail(seasonId: string, userId: string) {
-  return prisma.prediction.findUnique({
-    where: { seasonId_userId: { seasonId, userId } },
     include: {
       user: true,
-      season: {
-        include: {
-          seasonQuestions: {
-            where: { active: true },
-            include: { questionDefinition: true },
-            orderBy: { order: "asc" },
-          },
-        },
-      },
       answers: {
         include: {
           club: true,
           manager: true,
           multiClubs: { include: { club: true } },
-          seasonQuestion: { include: { questionDefinition: true } },
           reactions: { include: { user: true } },
         },
-        orderBy: { seasonQuestion: { order: "asc" } },
       },
     },
+    orderBy: { user: { username: "asc" } },
   });
 }

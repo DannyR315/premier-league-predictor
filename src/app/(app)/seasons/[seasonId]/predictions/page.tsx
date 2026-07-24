@@ -1,14 +1,16 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
 import {
   getSeasonForPrediction,
-  getRevealedPredictions,
+  getRevealedPredictionsWithAnswers,
 } from "@/server/predictions/queries";
+import { formatAnswerValue } from "@/server/predictions/format-answer";
 import { getEffectiveStatus, seasonStatusLabels } from "@/server/seasons/lifecycle";
 import { checkAndNotifyPredictionsLocked } from "@/server/seasons/mutations";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AnswerReactions } from "@/components/predictions/answer-reactions";
 
 export default async function SeasonPredictionsPage({
   params,
@@ -16,7 +18,10 @@ export default async function SeasonPredictionsPage({
   params: Promise<{ seasonId: string }>;
 }) {
   const { seasonId } = await params;
-  const season = await getSeasonForPrediction(seasonId);
+  const [season, session] = await Promise.all([
+    getSeasonForPrediction(seasonId),
+    auth(),
+  ]);
   if (!season) notFound();
 
   const effectiveStatus = getEffectiveStatus(season);
@@ -41,7 +46,7 @@ export default async function SeasonPredictionsPage({
     );
   }
 
-  const predictions = await getRevealedPredictions(seasonId);
+  const predictions = await getRevealedPredictionsWithAnswers(seasonId);
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,28 +65,72 @@ export default async function SeasonPredictionsPage({
           Nobody submitted a prediction this season.
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
-          {predictions.map((prediction) => (
-            <Link
-              key={prediction.id}
-              href={`/seasons/${seasonId}/predictions/${prediction.userId}`}
-            >
-              <Card className="transition-shadow hover:shadow-lg">
-                <CardContent className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage
-                      src={prediction.user.avatarUrl ?? undefined}
-                      alt={prediction.user.username}
-                    />
-                    <AvatarFallback>
-                      {prediction.user.username.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">{prediction.user.username}</span>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {predictions.map((prediction) => {
+            const answersBySeasonQuestionId = new Map(
+              prediction.answers.map((answer) => [
+                answer.seasonQuestionId,
+                answer,
+              ]),
+            );
+
+            return (
+              <Card key={prediction.id}>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage
+                        src={prediction.user.avatarUrl ?? undefined}
+                        alt={prediction.user.username}
+                      />
+                      <AvatarFallback>
+                        {prediction.user.username.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">
+                      {prediction.user.username}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4">
+                  {season.seasonQuestions.map((seasonQuestion) => {
+                    const answer = answersBySeasonQuestionId.get(
+                      seasonQuestion.id,
+                    );
+                    return (
+                      <div
+                        key={seasonQuestion.id}
+                        className="flex flex-col gap-1.5 border-t pt-3 first:border-t-0 first:pt-0"
+                      >
+                        <span className="text-xs text-muted-foreground">
+                          {seasonQuestion.order}.{" "}
+                          {seasonQuestion.questionDefinition.text}
+                        </span>
+                        <span className="text-sm font-medium">
+                          {formatAnswerValue(
+                            answer ?? null,
+                            seasonQuestion.questionDefinition.answerType,
+                          )}
+                        </span>
+                        {answer && (
+                          <AnswerReactions
+                            predictionAnswerId={answer.id}
+                            reactions={answer.reactions.map((reaction) => ({
+                              emoji: reaction.emoji,
+                              userId: reaction.userId,
+                              username: reaction.user.username,
+                            }))}
+                            currentUserId={session?.user?.id}
+                            currentUsername={session?.user?.username}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
                 </CardContent>
               </Card>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
