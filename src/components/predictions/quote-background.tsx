@@ -5,12 +5,13 @@ type Quote = {
   imageUrl: string;
 };
 
-const ROWS = [
-  { direction: "animate-marquee", duration: "150s" },
-  { direction: "animate-marquee-reverse", duration: "120s" },
-  { direction: "animate-marquee", duration: "140s" },
-  { direction: "animate-marquee-reverse", duration: "110s" },
-] as const;
+const ROW_COUNT = 10;
+const DURATIONS = [130, 145, 160, 115] as const;
+
+const ROWS = Array.from({ length: ROW_COUNT }, (_, i) => ({
+  direction: i % 2 === 0 ? "animate-marquee" : "animate-marquee-reverse",
+  duration: `${DURATIONS[i % DURATIONS.length]}s`,
+}));
 
 function rotate<T>(items: T[], by: number) {
   if (items.length === 0) return items;
@@ -38,7 +39,7 @@ export function QuoteBackground({ quotes }: { quotes: Quote[] }) {
                   key={`${quote.id}-${j}`}
                   src={quote.imageUrl}
                   alt=""
-                  className="h-full w-auto shrink-0 rounded-lg object-contain shadow-lg ring-1 ring-foreground/10"
+                  className="h-full w-72 shrink-0 rounded-lg object-cover shadow-lg ring-1 ring-foreground/10"
                 />
               ))}
             </div>
