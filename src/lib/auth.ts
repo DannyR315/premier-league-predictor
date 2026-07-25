@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Discord from "next-auth/providers/discord";
 import type { DiscordProfile } from "next-auth/providers/discord";
 import { prisma } from "@/lib/prisma";
+import { notifyAdminsOfPendingUser } from "@/server/discord/notify";
 
 const initialAdminDiscordIds = (process.env.INITIAL_ADMIN_DISCORD_IDS ?? "")
   .split(",")
@@ -26,6 +27,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const discordId = account.providerAccountId;
       const isBootstrapAdmin = initialAdminDiscordIds.includes(discordId);
 
+      const existing = await prisma.user.findUnique({ where: { discordId } });
+
       await prisma.user.upsert({
         where: { discordId },
         update: {
@@ -41,6 +44,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           status: isBootstrapAdmin ? "ACTIVE" : "PENDING",
         },
       });
+
+      if (!existing && !isBootstrapAdmin) {
+        await notifyAdminsOfPendingUser(discordProfile.username);
+      }
 
       return true;
     },
