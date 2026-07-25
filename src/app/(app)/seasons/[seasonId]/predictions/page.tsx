@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AnswerReactions } from "@/components/predictions/answer-reactions";
+import { userCardRingClass } from "@/lib/user-card-color";
+import { cn } from "@/lib/utils";
 
 export default async function SeasonPredictionsPage({
   params,
@@ -75,8 +77,14 @@ export default async function SeasonPredictionsPage({
             );
 
             return (
-              <Card key={prediction.id}>
-                <CardHeader>
+              <Card
+                key={prediction.id}
+                className={cn(
+                  "overflow-visible ring-2",
+                  userCardRingClass(prediction.userId),
+                )}
+              >
+                <CardHeader className="sticky top-0 z-10 rounded-t-lg border-b bg-card">
                   <div className="flex items-center gap-3">
                     <Avatar>
                       <AvatarImage
