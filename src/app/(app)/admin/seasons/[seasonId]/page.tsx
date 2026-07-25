@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getSeason,
+  getSeasons,
   getAvailableQuestionDefinitions,
 } from "@/server/seasons/queries";
 import {
@@ -11,6 +12,7 @@ import {
   endSeason,
   deleteSeason,
   addSeasonQuestion,
+  copySeasonQuestions,
   updateSeasonQuestion,
   removeSeasonQuestion,
   checkAndNotifyPredictionsLocked,
@@ -68,9 +70,16 @@ export default async function SeasonDetailPage({
   // deadline forward and reopen predictions that have already been revealed.
   const scheduleEditable =
     effectiveStatus === "DRAFT" || effectiveStatus === "OPEN";
-  const availableQuestions = isDraft
-    ? await getAvailableQuestionDefinitions(seasonId)
-    : [];
+  const [availableQuestions, otherSeasonsWithQuestions] = isDraft
+    ? await Promise.all([
+        getAvailableQuestionDefinitions(seasonId),
+        getSeasons().then((seasons) =>
+          seasons.filter(
+            (s) => s.id !== seasonId && s._count.seasonQuestions > 0,
+          ),
+        ),
+      ])
+    : [[], []];
 
   return (
     <div className="flex flex-col gap-8">
@@ -222,6 +231,43 @@ export default async function SeasonDetailPage({
           {season.seasonQuestions.length} question
           {season.seasonQuestions.length === 1 ? "" : "s"}
         </h2>
+
+        {isDraft && otherSeasonsWithQuestions.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-base">
+                Copy questions from another season
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form
+                action={copySeasonQuestions.bind(null, season.id)}
+                className="flex flex-wrap items-end gap-4"
+              >
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="sourceSeasonId">Season</Label>
+                  <Select name="sourceSeasonId" required>
+                    <SelectTrigger id="sourceSeasonId" className="w-72">
+                      <SelectValue placeholder="Pick a season" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {otherSeasonsWithQuestions.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.competition.name} {s.label} (
+                          {s._count.seasonQuestions} question
+                          {s._count.seasonQuestions === 1 ? "" : "s"})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" variant="outline">
+                  Copy questions
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
         {isDraft && (
           <Card className="mb-8">

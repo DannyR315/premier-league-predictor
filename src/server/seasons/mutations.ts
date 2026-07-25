@@ -274,6 +274,59 @@ export async function addSeasonQuestion(seasonId: string, formData: FormData) {
   revalidatePath(`/admin/seasons/${seasonId}`);
 }
 
+/**
+ * Copies another season's whole question set in one go — order, points,
+ * required/active flags and all — instead of re-adding each question by
+ * hand. Skips any question already on this season rather than erroring, so
+ * it's safe to run again (e.g. after adding one manually) without hitting
+ * the seasonId+questionDefinitionId unique constraint.
+ */
+export async function copySeasonQuestions(seasonId: string, formData: FormData) {
+  await requireAdmin();
+  await requireDraftSeason(seasonId);
+
+  const sourceSeasonId = field(formData, "sourceSeasonId");
+  if (!sourceSeasonId) {
+    throw new Error("Pick a season to copy questions from.");
+  }
+  if (sourceSeasonId === seasonId) {
+    throw new Error("Can't copy a season's questions into itself.");
+  }
+
+  const [sourceQuestions, existing] = await Promise.all([
+    prisma.seasonQuestion.findMany({
+      where: { seasonId: sourceSeasonId },
+      orderBy: { order: "asc" },
+    }),
+    prisma.seasonQuestion.findMany({
+      where: { seasonId },
+      select: { questionDefinitionId: true },
+    }),
+  ]);
+
+  const alreadyPresent = new Set(existing.map((q) => q.questionDefinitionId));
+  const toCopy = sourceQuestions.filter(
+    (q) => !alreadyPresent.has(q.questionDefinitionId),
+  );
+
+  if (toCopy.length === 0) {
+    throw new Error("That season has no new questions to copy in.");
+  }
+
+  await prisma.seasonQuestion.createMany({
+    data: toCopy.map((q) => ({
+      seasonId,
+      questionDefinitionId: q.questionDefinitionId,
+      order: q.order,
+      required: q.required,
+      active: q.active,
+      points: q.points,
+    })),
+  });
+
+  revalidatePath(`/admin/seasons/${seasonId}`);
+}
+
 export async function updateSeasonQuestion(
   seasonQuestionId: string,
   formData: FormData,
