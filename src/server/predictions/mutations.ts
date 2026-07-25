@@ -176,8 +176,9 @@ export async function submitPrediction(seasonId: string, formData: FormData) {
   });
 
   if (isFirstSubmission) {
+    const appUrl = process.env.APP_URL ?? "http://localhost:3000";
     await notifyDiscord(
-      `🔮 **${user.username}** just submitted their predictions for ${season.label}!`,
+      `🔮 **${user.username}** just submitted their predictions for ${season.label}!\nSubmit yours here: ${appUrl}/seasons/${seasonId}/predict`,
     );
   }
 

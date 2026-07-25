@@ -156,7 +156,7 @@ export async function lockPredictionsNow(seasonId: string) {
 
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
   await notifyDiscord(
-    `🔒 **Predictions have locked for ${season.label}!** See everyone's picks: ${appUrl}/seasons/${seasonId}/predictions`,
+    `🔒 **Predictions have locked for ${season.label}!**\nSee everyone's picks: ${appUrl}/seasons/${seasonId}/predictions`,
   );
 
   revalidatePath(`/admin/seasons/${seasonId}`);
@@ -182,7 +182,7 @@ export async function checkAndNotifyPredictionsLocked(seasonId: string) {
 
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
   await notifyDiscord(
-    `🔒 **Predictions have locked for ${season.label}!** See everyone's picks: ${appUrl}/seasons/${seasonId}/predictions`,
+    `🔒 **Predictions have locked for ${season.label}!**\nSee everyone's picks: ${appUrl}/seasons/${seasonId}/predictions`,
   );
 }
 
